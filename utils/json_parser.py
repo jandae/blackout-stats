@@ -25,8 +25,13 @@ def formatPosts(posts):
         comments = post['postComments']['comments']        
         post["category"] = parseCategory(post)
         post["date"] = ""
+        post["start_time"] = ""
+        post["end_time"] = ""
         if post["category"] != "uncategorized":
-            post["date"] = parseDateTimeRange(post["postText"])
+            post_meta = parsePostMeta(post["postText"])
+            post["date"] = post_meta["date"]
+            post["start_time"] = post_meta["start_time"]
+            post["end_time"] = post_meta["end_time"]
 
         post["text"] = post["postText"]
         post["ali_comment"] = findAliComment(comments)        
@@ -57,19 +62,23 @@ def parseCategory(post):
     
     return post_category
 
-def parseDateTimeRange(text):
+def parsePostMeta(text):
     date = ""
+    start_time = ""
+    end_time = ""
 
     keywords = [
         {
             "key": 1, 
             "text": "\nDATE:",
-            "start_keyword": "\nTIME STARTED:"
+            "start_keyword": "\nTIME STARTED:",
+            "end_keyword": "\nTIME RESTORED:"
         }, 
         {
             "key": 2, 
             "text": "\nDATE :",
-            "start_keyword": "\nTIME STARTED:"
+            "start_keyword": "\nTIME STARTED:",
+            "end_keyword": "\nTIME RESTORED:"
         },   
         {
             "key": 3, 
@@ -83,30 +92,61 @@ def parseDateTimeRange(text):
         }                       
     ]
 
-    for keyword in keywords:
-        if keyword["text"] in text:
+    for keyword in keywords:        
+        if keyword["text"] in text:            
             if keyword["key"] in [1,2]:
                 date = text.split(keyword["text"])[1]
-                date = date.split("\n")[0].strip()        
+                date = date.split("\n")[0].strip().upper()                      
+                start_time = text.split(keyword["start_keyword"])[1]
+                start_time = start_time.split("\n")[0].strip().upper() 
+                end_time_arr = text.split(keyword["end_keyword"])
+                if len(end_time_arr) > 1:
+                    end_time = end_time_arr[1]
+                    end_time = end_time.split("\n")[0].strip().upper()                 
             elif keyword["key"] == 3:
                 date = text.split(keyword["text"])[1]
-                date = date.split("\n")[0].strip()
+                date = date.split("\n")[0].strip().upper()
                 date_arr = date.split(" ")                
                 am_pm = date_arr.pop(len(date_arr)-1)
                 time = date_arr.pop(len(date_arr)-1)
                 date = " ".join(date_arr)
-                start_time = time + ' ' + am_pm                
-            elif keyword["key"] == 4:
+                start_time = time + ' ' + am_pm             
+                end_time = ""                   
+            elif keyword["key"] == 4:                
                 date = text.split(keyword["text"])[1]
-                date_arr = date.split(" from ")
-                date = date_arr[0].strip()
-                start_time = date_arr[1].split(" to ")[0]
-                end_time = date_arr[1].split(" to ")[1]
+                date = date.split("\n")[0].upper()
+
+                if " FROM " in date:
+                    date_arr = date.split(" FROM ")                                    
+                    date = date_arr[0].strip()
+                    
+                    start_time = date_arr[1].split(" TO ")[0]
+                    end_time = date_arr[1].split(" TO ")[1].split("\n")[0]
+                
 
         if type(date) is str and date:            
             date = parser.parse(date) #str to date
-            date.date() #remove time                    
-    return date
+            date = date.date() #remove time                    
+    return {
+        "date": date,
+        "start_time": cleanTime(start_time),
+        "end_time": cleanTime(end_time)
+    }
+
+def cleanTime(time):
+    ampm = ""    
+    if "NN" in time:
+        time = time.replace("NN", "PM")
+        ampm = "PM"
+    elif "AM" in time: 
+        ampm = "AM"
+    elif "PM" in time:
+        ampm = "PM"
+    else:
+        return time
+    
+    time = time.split(ampm)[0].strip()
+    return time + ' ' + ampm        
 
 def fileToJson():    
     with open('posts.json') as f:
@@ -151,6 +191,6 @@ def writeCSV(posts):
     data_file.close() 
     return 'done'
 
-# posts = urlToJson('https://api.apify.com/v2/datasets/ymv2aW22Sr6xtZytq/items?format=json')
-posts = fileToJson()
+posts = urlToJson('https://api.apify.com/v2/datasets/ikL25KWvX0VkI3bgR/items?format=json')
+# posts = fileToJson()
 writeCSV(posts)
