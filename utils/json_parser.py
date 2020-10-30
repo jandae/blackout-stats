@@ -27,13 +27,16 @@ def formatPosts(posts):
         post["date"] = ""
         post["start_time"] = ""
         post["end_time"] = ""
+        post["duration"] = ""
         if post["category"] != "uncategorized":
             post_meta = parsePostMeta(post["postText"])
             post["date"] = post_meta["date"]
             post["start_time"] = post_meta["start_time"]
             post["end_time"] = post_meta["end_time"]
-
+            post["duration"] = post_meta["duration"]
+            
         post["text"] = post["postText"]
+        post["photos"] = len(post["postImages"])
         post["ali_comment"] = findAliComment(comments)        
     return posts
 
@@ -67,6 +70,7 @@ def parsePostMeta(text):
     start_time = ""
     end_time = ""
 
+    #oh the inconsistensies
     keywords = [
         {
             "key": 1, 
@@ -126,27 +130,58 @@ def parsePostMeta(text):
 
         if type(date) is str and date:            
             date = parser.parse(date) #str to date
-            date = date.date() #remove time                    
+            date = date.date() #remove time                   
+           
+    start_time = cleanTime(start_time)
+    end_time = cleanTime(end_time)
+
     return {
         "date": date,
-        "start_time": cleanTime(start_time),
-        "end_time": cleanTime(end_time)
+        "start_time": start_time["human"],
+        "end_time": end_time["human"],
+		"duration": timeDiff(start_time["time"], end_time["time"])
     }
 
 def cleanTime(time):
-    ampm = ""    
-    if "NN" in time:
-        time = time.replace("NN", "PM")
-        ampm = "PM"
-    elif "AM" in time: 
-        ampm = "AM"
-    elif "PM" in time:
-        ampm = "PM"
-    else:
-        return time
+    time = time.replace(" ", "") #remove spaces just because
     
-    time = time.split(ampm)[0].strip()
-    return time + ' ' + ampm        
+    time_arr = time.split(":")
+    # 24 hour format just to be inconsistent 
+    if time_arr[0] and int(time_arr[0]) > 12 or time_arr[0] == "00":
+        time = time.replace("PM", "") #who does that?
+        time = time.replace("AM", "")
+        time = datetime.strptime(time, "%H:%M")
+        return {
+            "human" : time.strftime("%I:%M %p"),
+            "time": time
+        }
+    else:
+        ampm = ""    
+        if "NN" in time:
+            time = time.replace("NN", "PM")
+            ampm = "PM"
+        elif "AM" in time: 
+            ampm = "AM"
+        elif "PM" in time:
+            ampm = "PM"
+        else:
+            return {
+                "human" : "",
+                "time": ""
+            } 
+        
+        time = time.split(ampm)[0].strip()
+        time = datetime.strptime(time + ' ' + ampm, "%I:%M %p") 
+        return  {
+            "human" : time.strftime("%I:%M %p"),
+            "time": time
+        }
+
+def timeDiff(start, end):
+    if start and end:
+        time_delta = end - start
+        return time_delta
+    return ""
 
 def fileToJson():    
     with open('posts.json') as f:
@@ -191,6 +226,6 @@ def writeCSV(posts):
     data_file.close() 
     return 'done'
 
-posts = urlToJson('https://api.apify.com/v2/datasets/ikL25KWvX0VkI3bgR/items?format=json')
-# posts = fileToJson()
+# posts = urlToJson('https://api.apify.com/v2/datasets/Nvp0VWzJqop2oZc5N/items?format=json&clean=1')
+posts = fileToJson()
 writeCSV(posts)
