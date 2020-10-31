@@ -3,6 +3,7 @@ import urllib.request
 import csv 
 from datetime import datetime
 from dateutil import parser
+import re
 
 def urlToJson(url):
     items = {}
@@ -18,27 +19,33 @@ def urlToJson(url):
     return formatPosts(posts)
 
 def formatPosts(posts):
-    for post in posts:                
-        post["id"] = extractID(post['postUrl'])
-        post["datetime"] = datetime.strptime(post['postDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
+    formatted_posts = []
+    
+    for post in posts: 
+        formatted = {}        
+        formatted["id"] = extractID(post['postUrl'])
+        formatted["datetime"] = datetime.strptime(post['postDate'], "%Y-%m-%dT%H:%M:%S.%fZ")
 
         comments = post['postComments']['comments']        
-        post["category"] = parseCategory(post)
-        post["date"] = ""
-        post["start_time"] = ""
-        post["end_time"] = ""
-        post["duration"] = ""
-        if post["category"] != "uncategorized":
+        formatted["category"] = parseCategory(post)
+        formatted["date"] = ""
+        formatted["start_time"] = ""
+        formatted["end_time"] = ""
+        formatted["duration"] = ""
+        if formatted["category"] != "uncategorized":
             post_meta = parsePostMeta(post["postText"])
-            post["date"] = post_meta["date"]
-            post["start_time"] = post_meta["start_time"]
-            post["end_time"] = post_meta["end_time"]
-            post["duration"] = post_meta["duration"]
+            formatted["date"] = post_meta["date"]
+            formatted["start_time"] = post_meta["start_datetime"]
+            formatted["end_time"] = post_meta["end_datetime"]
+            formatted["duration"] = post_meta["duration"]
             
-        post["text"] = post["postText"]
-        post["photos"] = len(post["postImages"])
-        post["ali_comment"] = findAliComment(comments)        
-    return posts
+        formatted["text"] = post["postText"]
+        formatted["photos"] = len(post["postImages"])
+        formatted["ali_comment"] = findAliComment(comments)        
+        
+        formatted_posts.append(formatted)
+        
+    return formatted_posts
 
 def findAliComment(comments):
     ali_comment = ""
@@ -65,7 +72,205 @@ def parseCategory(post):
     
     return post_category
 
+def findMatch(text, pattern, groups=[1]):
+    match = re.search(pattern, text, flags = re.IGNORECASE|re.MULTILINE)
+    if match:   
+        formatted = ""
+        for group in groups:
+            formatted += match.group(group).strip() + " "
+        return formatted.strip()
+    return False
+    
 def parsePostMeta(text):
+    date = ""
+    start_datetime = ""
+    end_datetime = ""
+    
+    date_keywords = ["DATE"]
+    datetime_keywords = ["DATE AND TIME STARTED", "DATE/TIME"]
+    start_keywords = ["TIME STARTED"]
+    end_keywords = ["restor", "ended", "status"]
+    
+    # process date and time on separate lines
+    # Sample:
+    # Date: October 31, 2020
+    # Start time: 4:00 PM
+    # End time: 6:00 PM
+    for key in date_keywords:
+        date_key = "^" + key + ".*:(.*\d\d)$" #pattern: \n[key]:[group2]\n
+        date_pattern = findMatch(text, date_key)
+        
+        if date_pattern:
+            print(key)
+            start = ""
+            end = ""
+            end_date = ""
+            date = date_pattern
+            print("date:", date)
+
+            for start_key in start_keywords:
+                start_pattern = re.search(
+                    "^.*" + start_key + ".*\:\s*(\d*\:\d\d)\s*(\w\w)\s*restored at\s*(\d*\:\d\d)\s*(\w\w)", 
+                    text,
+                    flags = re.IGNORECASE|re.MULTILINE
+                )
+                
+                if start_pattern:
+                    start = cleanTime(start_pattern.group(1).strip() + " " + start_pattern.group(2).strip())
+                    print("start:", start)
+                    end = cleanTime(start_pattern.group(3).strip() + " " + start_pattern.group(4).strip())
+                    print("end:", end)
+                else:            
+                    start_pattern = re.search(
+                        "^.*" + start_key + ".*\:\s*(\d*\:\d\d)\s*(.*)$",
+                        text,
+                        flags = re.IGNORECASE|re.MULTILINE
+                    )
+                    
+                    if start_pattern:
+                        start = cleanTime(start_pattern.group(1).strip() + " " + start_pattern.group(2).strip())
+                        print("start:", start)
+                        break
+                    
+            for end_key in end_keywords: 
+                # DATE and TIME RESTORED: April 7,2020 , 3:06 PM
+                end_pattern = re.search(
+                    "^.*" + end_key + ".*:\s*(.*\s*\d*\,*\d\d\d\d)\s*\,*\s(\d*:\d\d)\s*(.*)$", 
+                    text, 
+                    flags = re.IGNORECASE|re.MULTILINE
+                )
+                
+                # End time: 6:00 PM (October 23, 2020)
+                end_pattern1 = re.search(
+                    "^.*" + end_key + ".*\:\s*(\d*\:\d\d)\s*(\w\w)\s*\((.*)\)$", 
+                    text, 
+                    flags = re.IGNORECASE|re.MULTILINE
+                )
+                
+                if end_pattern:
+                    end = cleanTime(end_pattern.group(2).strip() + " " + end_pattern.group(3).strip())
+                    print("end:", end)
+                    
+                    end_date = end_pattern.group(1)
+                    print("end date:", end_date)
+                    
+                    break 
+                
+                    
+                elif end_pattern1:
+                    end = cleanTime(end_pattern1.group(1).strip() + " " + end_pattern1.group(2).strip())
+                    print("end:", end)
+                    
+                    end_date = end_pattern1.group(3)
+                    print("end date:", end_date)
+                    
+                    break
+                
+                # End time: 6:00 PM
+                else:
+                    end_pattern = re.search(
+                        "^.*" + end_key + ".*:\s*(\d*:\s*\d\d)\s*(.*)$", 
+                        text, 
+                        flags = re.IGNORECASE|re.MULTILINE
+                    )
+
+                    if end_pattern:
+                        end = cleanTime(end_pattern.group(1).strip() + " " + end_pattern.group(2).strip())
+                        print("end:", end)                                                
+                        
+                    
+                    break
+                    
+            if start:
+                start_datetime = date + " " + start
+                print("start datetime:", start_datetime)
+                start_datetime = parser.parse(start_datetime, ignoretz=True) #str to date
+            if end:
+                
+                if end_date:
+                    end_datetime =  parser.parse(end_date + " " + end, ignoretz=True)
+                else:
+                    end_datetime = date + " " + end
+                    print("end datetime:", end_datetime)
+                    end_datetime =  parser.parse(end_datetime, ignoretz=True)
+                    
+            return {
+                "date": date,
+                "start_datetime": start_datetime,
+                "end_datetime": end_datetime,
+                "duration": timeDiff(start_datetime, end_datetime)
+            }
+
+    print("XXXXXXXX")
+            
+    # process single line date and time
+    # Sample:
+    # Date/Time: October 31, 2020 from 3:00 PM to 4:00 PM
+    # or
+    # Date time started: 0ctober 31, 2020 10:00AM
+    start = ""
+    end = ""
+    date = ""
+    
+    for datetime_key in datetime_keywords:
+        print(datetime_key)
+        print(text)
+        # 3235318709854444
+        # do this first
+        datetime = re.search(
+            "^" + datetime_key + ".*\:\s*(.*\,*\s*)\,*\s*from\s*(\d*:\d\d)\s*(\w\w)\s*to\s*(\d*:\d\d)\s*(\w\w)", 
+            text, 
+            flags=re.IGNORECASE|re.MULTILINE
+        )
+        
+        if datetime:
+            print("======")
+            print(datetime.string)    
+            print("datetime:", datetime.group())
+            
+            date = datetime.group(1).strip()
+            print("date:", date)
+            
+            start = datetime.group(2).strip() + " " + datetitme.group(3).strip()
+            print("start:", start)
+            
+            end = datetime.group(4).strip() + " " + datetitme.group(5).strip()
+            print("end:", end)
+            
+            break
+        else:
+            # Date time started: 0ctober 31, 2020 10:00AM
+            datetime = re.search("^" + datetime_key + ".*:(.*,.*\d\d)\s(\d*\d:\d\d.*)$", text, flags=re.IGNORECASE|re.MULTILINE)
+            
+            if datetime:
+                print("datetime:", datetime.group())
+                
+                date = datetime.group(1)
+                print("date:", date)
+                
+                start = datetime.group(2)
+                print("start:", start)   
+                
+            break                
+        
+
+    if start:
+        start_datetime = date + " " + start
+        print("start datetime:", start_datetime)
+        start_datetime = parser.parse(start_datetime, ignoretz=True) #str to date
+        
+    if end:
+        end_datetime = date + " " + end
+        print("end datetime:", end_datetime)
+        end_datetime =  parser.parse(date + " " + end, ignoretz=True)
+    return {
+        "date": date,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "duration": timeDiff(start_datetime, end_datetime)
+    }
+    
+def parsePostMeta1(text):
     date = ""
     start_time = ""
     end_time = ""
@@ -76,13 +281,15 @@ def parsePostMeta(text):
             "key": 1, 
             "text": "\nDATE:",
             "start_keyword": "\nTIME STARTED:",
-            "end_keyword": "\nTIME RESTORED:"
+            "end_keyword": "\nTIME RESTORED:",
+            "alt_keyword": "\nDATE and TIME RESTORED:"
         }, 
         {
             "key": 2, 
             "text": "\nDATE :",
             "start_keyword": "\nTIME STARTED:",
-            "end_keyword": "\nTIME RESTORED:"
+            "end_keyword": "\nTIME RESTORED:",
+            "alt_keyword": "\nDATE and TIME RESTORED:"
         },   
         {
             "key": 3, 
@@ -95,7 +302,7 @@ def parsePostMeta(text):
             "start_keyword": ""
         }                       
     ]
-
+         
     for keyword in keywords:        
         if keyword["text"] in text:            
             if keyword["key"] in [1,2]:
@@ -143,7 +350,8 @@ def parsePostMeta(text):
     }
 
 def cleanTime(time):
-    time = time.replace(" ", "") #remove spaces just because
+    time = time.replace(" ", "").upper() #remove spaces just because
+    
     
     time_arr = time.split(":")
     # 24 hour format just to be inconsistent 
@@ -151,10 +359,7 @@ def cleanTime(time):
         time = time.replace("PM", "") #who does that?
         time = time.replace("AM", "")
         time = datetime.strptime(time, "%H:%M")
-        return {
-            "human" : time.strftime("%I:%M %p"),
-            "time": time
-        }
+        return time.strftime("%I:%M %p")
     else:
         ampm = ""    
         if "NN" in time:
@@ -165,17 +370,10 @@ def cleanTime(time):
         elif "PM" in time:
             ampm = "PM"
         else:
-            return {
-                "human" : "",
-                "time": ""
-            } 
+            return False
         
         time = time.split(ampm)[0].strip()
-        time = datetime.strptime(time + ' ' + ampm, "%I:%M %p") 
-        return  {
-            "human" : time.strftime("%I:%M %p"),
-            "time": time
-        }
+        return time + ' ' + ampm
 
 def timeDiff(start, end):
     if start and end:
@@ -229,3 +427,4 @@ def writeCSV(posts):
 # posts = urlToJson('https://api.apify.com/v2/datasets/Nvp0VWzJqop2oZc5N/items?format=json&clean=1')
 posts = fileToJson()
 writeCSV(posts)
+# 3381355871917393
