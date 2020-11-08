@@ -2,12 +2,24 @@
 	<div class="main">
 		<div class="total-section">
 			<h2>Total Blackouts</h2>
-			<h3 class="number">{{computed_data.total}}</h3>
-			<span>Last Updated: {{computed_data.last_updated}}</span>
+			<h3 class="number">{{computed_data.total_blackouts}}</h3>
+			<h2>Total Days</h2>
+			<h3 class="number">{{computed_data.total_days}}</h3>
+			<p>out of {{computed_data.total_days_since}} days</p>
+
+			<h2>Percentage</h2>
+			<h3 class="number">{{computed_data.percent_days}}%</h3>
+			of an area to have a blackout
+
+			<h2>Total Downtime:</h2>
+			<h3 class="number">{{computed_data.total_days_down}}</h3>
 		</div>
 
+		<p>First Post: {{computed_data.first_post}}</p>
+		<p>last Post: {{computed_data.last_post}}</p>
+		<p>Last Updated: {{computed_data.updated_at}}</p>
 		<div class="heatmap-section">
-
+			<heat-map :days="days"/>
 		</div>
 
 		<div class="since-section">
@@ -23,7 +35,7 @@
 				<li><button>Scheduled</button></li>
 			</ul> -->
 
-			<div class="info-wrap">
+			<!-- <div class="info-wrap">
 				<div class="info-item">
 					<h4>Average Restoration Time</h4>
 					<h5 class="number">{{computed_data.categories.all.average_restoration}}</h5>
@@ -47,44 +59,42 @@
 
 					</ul>
 				</div>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </template>
 
 <script>
+import axios from 'axios'
+const api_server = process.env.VUE_APP_API
+
+import HeatMap from './HeatMap.vue'
+
 export default {
 	name: 'Home',
+	components: {
+		HeatMap
+	},
 	data () {
 		return {
-			computed_data : {
-				total: "148",
-				days_since: "4",
-				last_updated: "Oct. 25, 2020 4:55 PM",
-				categories: {
-					all: {
-						average_restoration: "2 Hours",
-						average_days_week: "1.3 days",
-						photo_verification: "119/148",
-						top_causes: [
-							{
-								name: "tree",
-								value:  10
-							},
-							{
-								name: "bird",
-								value:  10
-							},
-							{
-								name: "post",
-								value:  10
-							},
-						]
-					}
-				}
-			}
+			computed_data : {},
+			days: []
 		}
 	},
+	methods: {
+		getComputed: function () {
+			axios
+				.get(`${api_server}/computed`)
+				.then(response => {
+					this.computed_data = response.data
+					this.days = JSON.parse(response.data.days_count)
+				})
+				.catch(error => console.log(error))
+		}
+	},
+	mounted() {
+		this.getComputed()
+	}
 }
 </script>
 
