@@ -39,6 +39,7 @@ def formatPosts(posts):
         formatted["start_time"] = "NULL"
         formatted["end_time"] = "NULL"
         formatted["duration"] = "NULL"
+        formatted["cause"] = "NULL"
 
         if formatted["category"] != "uncategorized":
             post_meta = parsePostMeta(post["postText"])
@@ -46,6 +47,7 @@ def formatPosts(posts):
             formatted["start_time"] = post_meta["start_datetime"] if post_meta["start_datetime"] else "NULL"
             formatted["end_time"] = post_meta["end_datetime"] if post_meta["end_datetime"] else "NULL"
             formatted["duration"] = post_meta["duration"] if post_meta["duration"] else "NULL"
+            formatted["cause"] = post_meta["cause"] if post_meta["cause"] else "NULL"
 
         formatted["photos"] = post_images if post_images else "NULL"
         comments = post['postComments']['comments']
@@ -80,6 +82,7 @@ def parseCategory(post):
 
     return post_category
 
+
 def findMatch(text, pattern, groups=[1]):
     match = re.search(pattern, text, flags = re.IGNORECASE|re.MULTILINE)
     if match:
@@ -89,7 +92,28 @@ def findMatch(text, pattern, groups=[1]):
         return formatted.strip()
     return False
 
+def parseCause(text):
+    keywords = ["cause", "purpose"]
+    cause = "NULL"
+
+    for key in keywords:
+        title_pattern = re.search(
+            "^"+key+"\s*:\s*(.*)$",
+            text,
+            flags = re.IGNORECASE|re.MULTILINE
+        )
+
+        if title_pattern:
+            cause = title_pattern.group(1).strip()
+            print(cause)
+            break
+
+    return cause
+
+
 def parsePostMeta(text):
+
+    cause = parseCause(text)
     date = ""
     start_datetime = ""
     end_datetime = ""
@@ -209,7 +233,8 @@ def parsePostMeta(text):
                 "date": date,
                 "start_datetime": start_datetime,
                 "end_datetime": end_datetime,
-                "duration": timeDiff(start_datetime, end_datetime)
+                "duration": timeDiff(start_datetime, end_datetime),
+                "cause": cause
             }
 
     print("XXXXXXXX")
@@ -225,7 +250,6 @@ def parsePostMeta(text):
 
     for datetime_key in datetime_keywords:
         print(datetime_key)
-        print(text)
         # 3235318709854444
         # do this first
         datetime = re.search(
@@ -283,7 +307,8 @@ def parsePostMeta(text):
         "date": date,
         "start_datetime": start_datetime,
         "end_datetime": end_datetime,
-        "duration": timeDiff(start_datetime, end_datetime)
+        "duration": timeDiff(start_datetime, end_datetime),
+        "cause": cause
     }
 
 def parsePostMeta1(text):
