@@ -1,0 +1,68 @@
+.main {
+	padding: 7% 0;
+    width: 95%;
+    margin: 0 auto;
+}
+
+.section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+
+    h2 {
+        font-size: 5em;
+        line-height: 0.6em;
+
+        span {
+            font-family: 'Heebo', Arial, sans-serif;
+            font-size: 0.2em;
+        }
+    }
+
+    h3 {
+        font-size: 3.5em;
+        line-height: 1em;
+
+        &.under {
+            line-height: 0.3em;
+            display: flex;
+            align-items: baseline;
+        }
+
+        span {
+            font-family: 'Heebo', Arial, sans-serif;
+            font-size: 0.3em;
+        }
+    }
+
+    h5 {
+        font-size: 1.2em;
+    }
+
+    &.two-col {
+        & > div {
+            width: 50%;
+        }
+    }
+}
+
+.heatmap-section {
+    margin-bottom: 30px;
+}
+
+.since-section {
+    & > div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .caption {
+        width: 50%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        margin-left: 5px;
+        line-height: 41px;
+        font-size: 1.3em;
+    }
+}

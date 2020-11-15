@@ -1,5 +1,5 @@
 <template>
-    <calendar-heatmap :values="days" :end-date="new Date()" tooltip-unit="power interuptions" :max="7" :range-color="['fff', '969842', '494a20', '522d2d', '1f1f1f', '000']"/>
+    <calendar-heatmap :values="days" :end-date="new Date()" tooltip-unit="power interuptions" :max="7" :range-color="['fffde5', '777777', '555555', '333333', '000']"/>
 </template>
 
 <script>

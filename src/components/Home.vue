@@ -1,31 +1,55 @@
 <template>
 	<div class="main">
-		<div class="total-section">
-			<h2>Total Blackouts</h2>
-			<h3 class="number">{{computed_data.total_blackouts}}</h3>
-			<h2>Total Days</h2>
-			<h3 class="number">{{computed_data.total_days}}</h3>
-			<p>out of {{computed_data.total_days_since}} days</p>
+		<div class="section">
+			<h1>Black<span>Outs</span></h1>
+		</div>
+		<div class="section">
+			<div>
+				<h2 class="blk">{{computed_data.total_blackouts}}</h2>
+				<h5>Reported</h5>
+			</div>
+		</div>
+		<div class="section two-col">
+			<div>
+				<h3 class="blk">{{computed_data.percent_days}}%</h3>
+				<h5>{{computed_data.total_days}} out of {{computed_data.total_days_since}} Days</h5>
+			</div>
+			<div>
+				<h3 class="blk">{{computed_data.average_duration}}</h3>
+				<h5>Hours Average</h5>
+			</div>
+		</div>
 
-			<h2>Percentage</h2>
-			<h3 class="number">{{computed_data.percent_days}}%</h3>
-			of an area to have a blackout
+		<div class="heatmap-section">
+			<heat-map :days="days"/>
+		</div>
 
-			<h2>Total Downtime:</h2>
-			<h3 class="number">{{computed_data.total_days_down}}</h3>
+		<div class="section">
+			<div>
+				<h3 class="blk under">
+					{{computed_data.total_days_down}}<span>Days</span>
+					{{computed_data.total_hours_down}}<span>hours</span>
+					{{computed_data.total_minutes_down}}<span>minutes</span>
+				</h3>
+				<h5>Total Equivalent</h5>
+			</div>
+		</div>
+
+		<div class="since-section section">
+			<div>
+				<div>
+					<h3 class="blk">{{computed_data.days_since}}</h3>
+				</div>
+				<div class="caption">Days Since Last Blackout</div>
+			</div>
 		</div>
 
 		<p>First Post: {{computed_data.first_post}}</p>
 		<p>last Post: {{computed_data.last_post}}</p>
 		<p>Last Updated: {{computed_data.updated_at}}</p>
-		<div class="heatmap-section">
-			<heat-map :days="days"/>
-		</div>
 
-		<div class="since-section">
-			<h2>Days Since Last Blackout</h2>
-			<h3 class="number">{{computed_data.days_since}}</h3>
-		</div>
+
+
 
 		<div class="info-section">
 			<!-- <ul class="categories">
@@ -100,46 +124,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-.main {
-	padding: 7% 0;
-	width: 95%;
-}
-.total-section {
-	h2 {
-		margin: 0;
-	}
-	.number {
-		font-size: 6em;
-		line-height: 1em;
-		margin: 0;
-	}
-}
-
-.since-section {
-	h2 {
-		margin: 0;
-	}
-	.number {
-		font-size: 5em;
-		line-height: 1em;
-		margin: 0;
-	}
-}
-
-.info-wrap {
-	display: flex;
-    flex-wrap: wrap;
-
-	.info-item {
-		width: 50%;
-		h4 {
-			margin: 0;
-		}
-		.number {
-			line-height: 1em;
-			font-size: 3em;
-			margin: 0;
-		}
-	}
-}
+@import '@/assets/scss/home.scss';
 </style>
