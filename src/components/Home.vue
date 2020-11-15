@@ -44,6 +44,10 @@
 			</div>
 		</div>
 
+		<div class="section">
+			<pie-chart :list="JSON.parse(computed_data.categories)"/>
+		</div>
+
 		<p>First Post: {{computed_data.first_post}}</p>
 		<p>last Post: {{computed_data.last_post}}</p>
 		<p>Last Updated: {{computed_data.updated_at}}</p>
@@ -90,19 +94,35 @@
 
 <script>
 import axios from 'axios'
-const api_server = process.env.VUE_APP_API
-
 import HeatMap from './HeatMap.vue'
+import PieChart from './PieChart.vue'
+
+const api_server = process.env.VUE_APP_API
 
 export default {
 	name: 'Home',
 	components: {
-		HeatMap
+		HeatMap,
+		PieChart
 	},
 	data () {
 		return {
 			computed_data : {},
-			days: []
+			days: [],
+			chartdata: {
+				labels: ['January', 'February'],
+				datasets: [
+					{
+					label: 'Data One',
+					backgroundColor: '#f87979',
+					data: [40, 20]
+					}
+				]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false
+			}
 		}
 	},
 	methods: {
