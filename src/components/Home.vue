@@ -121,7 +121,12 @@ export default {
 			},
 			options: {
 				responsive: true,
-				maintainAspectRatio: false
+				maintainAspectRatio: false,
+				plugins: {
+					datalabels: {
+						clip: true
+					}
+				},
 			}
 		}
 	},

@@ -78,5 +78,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+// prevent label clipping
+#pie-chart {
+    width: 650px!important;
+    height: 430px!important;
+}
 </style>
