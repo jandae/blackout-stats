@@ -44,7 +44,7 @@
 			</div>
 		</div>
 
-		<div class="section">
+		<div class="section pie-section">
 			<pie-chart :list="JSON.parse(computed_data.categories)"/>
 		</div>
 
@@ -149,5 +149,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+@import '@/assets/scss/breakpoints.scss';
 @import '@/assets/scss/home.scss';
 </style>

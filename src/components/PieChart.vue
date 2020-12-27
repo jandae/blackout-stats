@@ -33,9 +33,10 @@ export default {
 					{
                         label: 'Data One',
                         backgroundColor: 'transparent',
+                        borderColor: '#fffde5',
                         data: counts,
                         datalabels: {
-                            color: '#fff',
+                            color: '#fffde5',
                             anchor: 'end',
                             align: 'end',
                             offset: 10,

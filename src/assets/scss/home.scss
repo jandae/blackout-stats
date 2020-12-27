@@ -48,6 +48,15 @@
 
 .heatmap-section {
     margin-bottom: 30px;
+    @include respond-to('medium') {
+        // transform: scale(0.7);
+    }
+}
+
+.pie-section {
+    @include respond-to('medium') {
+        transform: scale(0.6);
+    }
 }
 
 .since-section {
