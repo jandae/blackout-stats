@@ -7,7 +7,7 @@
 .section {
     display: flex;
     justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 70px;
 
     &.separator {
         border-bottom: 1px solid;
@@ -87,8 +87,71 @@
     }
 }
 
+.interesting-section {
+    display: flex;
+    flex-direction: column;
+
+    .causes {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+
+        .cause-item {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid;
+
+            &:last-child {
+                border-right: 0;
+            }
+
+            & > .blk {
+                font-size: 2.5em;
+            }
+
+            .icon-wrap {
+                position: relative;
+                margin: 10px 0 0;
+
+                .bolt {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    opacity: 1;
+                    animation: fade 5s infinite;
+
+                    @keyframes fade {
+                        0%,100% { opacity: 0 }
+                        50% { opacity: 1 }
+                    }
+                }
+            }
+
+            .bottom-wrap {
+                font-size: 0.7em;
+            }
+        }
+    }
+}
+
 .source {
     a {
         font-size: 0.5em;
+    }
+}
+
+.blink {
+    opacity: 1;
+    animation: blink 5s linear;
+
+    @keyframes blink {
+        10% { opacity: 0 }
+        11% { opacity: 1 }
+        12% { opacity: 0 }
+        13% { opacity: 1 }
+        14% { opacity: 0 }
+        50% { opacity: 1 }
+        60% { opacity: 0 }
+        100% { opacity: 1 }
     }
 }

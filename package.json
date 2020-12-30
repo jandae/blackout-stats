@@ -14,7 +14,8 @@
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
     "vue-calendar-heatmap": "^0.8.4",
-    "vue-chartjs": "^3.5.1"
+    "vue-chartjs": "^3.5.1",
+    "vuewordcloud": "^18.7.12"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

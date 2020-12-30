@@ -1,17 +1,17 @@
 <template>
 	<div class="main">
 		<div class="section">
-			<h1>Black<span>Outs</span></h1>
+			<h1>Black<span :class="{blink: 'blink'}">Outs</span></h1>
 		</div>
 		<div class="section">
 			<div>
-				<h2 class="blk">{{computed_data.total_blackouts}}</h2>
+				<h2 v-if="computed_data.total_blackouts"><number class="blk" :num="computed_data.total_blackouts"/></h2>
 				<h5>Reported</h5>
 			</div>
 		</div>
 		<div class="section two-col">
 			<div>
-				<h3 class="blk">{{computed_data.percent_days}}%</h3>
+				<h3 class="blk"><number class="blk" :num="computed_data.percent_days" after="%"/></h3>
 				<h5>{{computed_data.total_days}} out of {{computed_data.total_days_since}} Days</h5>
 			</div>
 			<div>
@@ -27,9 +27,9 @@
 		<div class="section">
 			<div>
 				<h3 class="blk under">
-					{{computed_data.total_days_down}}<span>Days</span>
-					{{computed_data.total_hours_down}}<span>hours</span>
-					{{computed_data.total_minutes_down}}<span>minutes</span>
+					<number class="blk" :num="computed_data.total_days_down"/><span>Days</span>&nbsp;
+					<number class="blk" :num="computed_data.total_hours_down"/><span>hours</span>&nbsp;
+					<number class="blk" :num="computed_data.total_minutes_down"/><span>minutes</span>
 				</h3>
 				<h5>Total Equivalent</h5>
 			</div>
@@ -49,30 +49,57 @@
 			<pie-chart :list="JSON.parse(computed_data.categories)"/>
 		</div>
 
-		<div class="section pie-section">
+		<div class="section interesting-section">
 			<h5>Interesting Causes</h5>
-			<ul>
-				<li>Birds {{computed_data.birds}}</li>
-				<li>
-					<ul>
-						<li>Martinez {{computed_data.martinez}}</li>
-						<li>Crow {{computed_data.crow}}</li>
-					</ul>
-				</li>
-			</ul>
-			<div>Trees {{computed_data.trees}}</div>
-			<div>
-				<ul>
-					<li>Bumped {{computed_data.bumped}}</li>
-					<li>
-						<ul>
-							<li>Backhoe {{computed_data.backhoe}}</li>
-						</ul>
-					</li>
-				</ul>
-
+			<div class="causes">
+				<div class="cause-item">
+					<span>Birds</span>
+					<span class="blk">{{computed_data.birds}}</span>
+					<div class="icon-wrap">
+						<svg class="icon">
+							<use xlink:href="#bullfinch"></use>
+						</svg>
+						<bolt class="bolt"></bolt>
+					</div>
+					<div class="bottom-wrap">
+						<div>Martinez <span class="blk">{{computed_data.martinez}}</span></div>
+						<div>Crow <span class="blk">{{computed_data.crow}}</span></div>
+					</div>
 				</div>
-			<div>Lightning {{computed_data.lightning}}</div>
+				<div class="cause-item">
+					<span>Trees</span>
+					<span class="blk">{{computed_data.trees}}</span>
+					<div class="icon-wrap">
+						<svg class="icon">
+							<use xlink:href="#trees"></use>
+						</svg>
+					</div>
+					<div class="bottom-wrap">
+						<div>Pine <span class="blk">{{computed_data.pine}}</span></div>
+					</div>
+				</div>
+				<div class="cause-item">
+					<span>Bumped</span>
+					<span class="blk">{{computed_data.bumped}}</span>
+					<div class="icon-wrap">
+						<svg class="icon">
+							<use xlink:href="#construction-machine"></use>
+						</svg>
+					</div>
+					<div class="bottom-wrap">
+						<div>Backhoe <span class="blk">{{computed_data.backhoe}}</span></div>
+					</div>
+				</div>
+				<div class="cause-item">
+					<span>Lightning</span>
+					<span class="blk">{{computed_data.lightning}}</span>
+					<div class="icon-wrap">
+						<svg class="icon">
+							<use xlink:href="#flash"></use>
+						</svg>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div class="section cloud-section separator">
@@ -102,6 +129,8 @@
 import axios from 'axios'
 import HeatMap from './HeatMap.vue'
 import PieChart from './PieChart.vue'
+import Bolt from './Bolt.vue'
+import Number from './Number.vue'
 import wordcloud from 'vue-wordcloud'
 
 const api_server = process.env.VUE_APP_API
@@ -111,11 +140,14 @@ export default {
 	components: {
 		HeatMap,
 		PieChart,
-		wordcloud
+		wordcloud,
+		Bolt,
+		Number
 	},
 	data () {
 		return {
 			myColors: ['#000', '#333333', '#555555', '#777777', '#fffde5'],
+			blink: false,
 			computed_data : {},
 			days: [],
 			chartdata: {
@@ -184,6 +216,10 @@ export default {
 					this.computed_data = response.data
 					this.days = JSON.parse(response.data.days_count)
 					this.words = JSON.parse(response.data.words)
+				})
+				.finally(() => {
+					this.blink = true
+					console.log('done');
 				})
 				.catch(error => console.log(error))
 		}
