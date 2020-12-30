@@ -49,4 +49,12 @@ body {
             font-weight: normal;
         }
     }
+
+    a {
+        color: #fffde5;
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
 }

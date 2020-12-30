@@ -9,9 +9,13 @@
     justify-content: center;
     margin-bottom: 30px;
 
+    &.separator {
+        border-bottom: 1px solid;
+        padding-bottom: 20px;
+    }
+
     h2 {
         font-size: 5em;
-        line-height: 0.6em;
 
         span {
             font-family: 'Heebo', Arial, sans-serif;
@@ -24,7 +28,6 @@
         line-height: 1em;
 
         &.under {
-            line-height: 0.3em;
             display: flex;
             align-items: baseline;
         }
@@ -54,12 +57,20 @@
 }
 
 .pie-section {
+    flex-direction: column;
+    align-items: center;
     @include respond-to('medium') {
         transform: scale(0.6);
     }
 }
 
+.cloud-section {
+    flex-direction: column;
+    align-items: center;
+}
+
 .since-section {
+
     & > div {
         display: flex;
         align-items: center;
@@ -73,5 +84,11 @@
         margin-left: 5px;
         line-height: 41px;
         font-size: 1.3em;
+    }
+}
+
+.source {
+    a {
+        font-size: 0.5em;
     }
 }
